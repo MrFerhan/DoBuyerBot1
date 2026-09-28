@@ -1301,27 +1301,49 @@ import asyncio
 from aiohttp import web
 
 async def handle_ping(request):
-    """A dummy webpage handler to satisfy Render's port checker."""
+    """A placeholder webpage endpoint to pass Render's platform routing logs."""
     return web.Response(text="Do-Buyer Marketplace Engine is running smoothly!")
 
-def main() -> None:
-    """Starts the Telegram Bot with an integrated dummy web server."""
+async def start_bot_and_server():
+    """Initializes and runs the bot and web service within the proper async scope."""
     logger.info("Initializing Do-Buyer V1 Engine...")
     application = build_application()
     
-    # Initialize the polling loop asynchronously
-    loop = asyncio.get_event_loop()
-    loop.create_task(application.initialize())
-    loop.create_task(application.start())
-    loop.create_task(application.updater.start_polling(drop_pending_updates=True))
+    # 1. Initialize and launch the Telegram update engine components
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling(drop_pending_updates=True)
     
-    # Start a dummy web server on the port Render assigns us
-    port = int(os.getenv("PORT", "10000"))
+    # 2. Spin up a lightweight web runner mapping to Render's allocated port environmental variable
     web_app = web.Application()
     web_app.router.add_get('/', handle_ping)
     
+    port = int(os.getenv("PORT", "10000"))
+    runner = web.AppRunner(web_app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    
     logger.info(f"Dummy web server listening on port {port}. Engine is active!")
-    web.run_app(web_app, host='0.0.0.0', port=port, loop=loop)
+    await site.start()
+    
+    # Keep the execution thread open infinitely while listening for events
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+        logger.info("Stopping system processes cleanly...")
+    finally:
+        await application.updater.stop()
+        await application.stop()
+        await application.shutdown()
+        await runner.cleanup()
+
+def main() -> None:
+    """Main application launcher initializing the master async thread."""
+    try:
+        asyncio.run(start_bot_and_server())
+    except Exception as err:
+        logger.critical(f"Bot system runtime crashed with error code: {err}")
 
 if __name__ == "__main__":
     main()
