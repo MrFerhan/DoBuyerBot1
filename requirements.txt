@@ -1,9 +1,2 @@
-# Do-Buyer V1 — Python Dependencies
-# Telegram Bot API v21+ asynchronous framework with JobQueue support
-python-telegram-bot[job-queue]>=21.0,<22.0
-
-# Environment variable loading
-python-dotenv>=1.0.0
-
-# Production-grade async-safe SQLite support without heavy C-bindings
-# (Standard library sqlite3 is used with asyncio.to_thread for rock-solid concurrency)
+python-telegram-bot==21.10
+aiohttp==3.11.11

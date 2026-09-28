@@ -1297,13 +1297,31 @@ def build_application() -> Application:
     return app
 
 
+import asyncio
+from aiohttp import web
+
+async def handle_ping(request):
+    """A dummy webpage handler to satisfy Render's port checker."""
+    return web.Response(text="Do-Buyer Marketplace Engine is running smoothly!")
+
 def main() -> None:
-    """Starts the Telegram Bot in polling mode."""
+    """Starts the Telegram Bot with an integrated dummy web server."""
     logger.info("Initializing Do-Buyer V1 Engine...")
     application = build_application()
-    logger.info("Bot is active and polling for updates. Press Ctrl+C to terminate.")
-    application.run_polling(drop_pending_updates=True)
-
+    
+    # Initialize the polling loop asynchronously
+    loop = asyncio.get_event_loop()
+    loop.create_task(application.initialize())
+    loop.create_task(application.start())
+    loop.create_task(application.updater.start_polling(drop_pending_updates=True))
+    
+    # Start a dummy web server on the port Render assigns us
+    port = int(os.getenv("PORT", "10000"))
+    web_app = web.Application()
+    web_app.router.add_get('/', handle_ping)
+    
+    logger.info(f"Dummy web server listening on port {port}. Engine is active!")
+    web.run_app(web_app, host='0.0.0.0', port=port, loop=loop)
 
 if __name__ == "__main__":
     main()
