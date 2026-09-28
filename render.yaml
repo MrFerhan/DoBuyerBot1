@@ -1,0 +1,20 @@
+services:
+  - type: worker
+    name: dobuyer-bot-worker
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    autoDeploy: true
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: BOT_USERNAME
+        sync: false
+      - key: PUBLIC_CHANNEL_ID
+        sync: false
+      - key: DATABASE_PATH
+        value: /var/data/dobuyer.db
+    disk:
+      name: sqlite-data
+      mountPath: /var/data
+      sizeGB: 1

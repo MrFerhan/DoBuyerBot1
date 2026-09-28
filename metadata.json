@@ -1,0 +1,6 @@
+{
+  "name": "Do-Buyer V1 — Telegram Marketplace Bot Engine",
+  "description": "Production-grade dual-sided marketplace Telegram Bot (PTB v21+) with embedded SQLite, smart keyword match scoring, quota loops, and real-time simulator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
